@@ -32,8 +32,8 @@ var (
 				h.To == "alice@testsuite.autocrypt.org" &&
 				h.Key != nil &&
 				checkKey(h.Key) &&
-				h.PreferEncrypt == "" &&
-				h.Type == "" &&
+				!h.PreferEncrypt &&
+				h.Type == TypeOpenPGP &&
 				h.Uncritical == nil
 		},
 		"rsa2048-explicit-type.eml": func(h *Header) bool {
@@ -41,8 +41,8 @@ var (
 				h.To == "alice@testsuite.autocrypt.org" &&
 				h.Key != nil &&
 				checkKey(h.Key) &&
-				h.PreferEncrypt == "" &&
-				h.Type == "p" &&
+				!h.PreferEncrypt &&
+				h.Type == TypeOpenPGP &&
 				h.Uncritical == nil
 		},
 		"rsa2048-unknown-critical.eml": func(h *Header) bool {
@@ -54,8 +54,8 @@ var (
 				h.To == "alice@testsuite.autocrypt.org" &&
 				h.Key != nil &&
 				checkKey(h.Key) &&
-				h.PreferEncrypt == "" &&
-				h.Type == "" &&
+				!h.PreferEncrypt &&
+				h.Type == TypeOpenPGP &&
 				h.Uncritical == nil
 		},
 		"25519-simple.eml": func(h *Header) bool {
@@ -67,8 +67,8 @@ var (
 				h.To == "alice@testsuite.autocrypt.org" &&
 				h.Key != nil &&
 				checkKey(h.Key) &&
-				h.PreferEncrypt == "" &&
-				h.Type == "" &&
+				!h.PreferEncrypt &&
+				h.Type == TypeOpenPGP &&
 				h.Uncritical == nil
 		},
 		"rsa2048-unknown-non-critical.eml": func(h *Header) bool {
@@ -76,8 +76,8 @@ var (
 				h.To == "alice@testsuite.autocrypt.org" &&
 				h.Key != nil &&
 				checkKey(h.Key) &&
-				h.PreferEncrypt == "" &&
-				h.Type == "" &&
+				!h.PreferEncrypt &&
+				h.Type == TypeOpenPGP &&
 				h.Uncritical != nil &&
 				h.Uncritical["_monkey"] == "ignore"
 		},
