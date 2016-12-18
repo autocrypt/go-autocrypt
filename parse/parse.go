@@ -2,23 +2,33 @@ package parse
 
 import (
 	"bufio"
-	"net/mail"
+	"encoding/base64"
+	"errors"
+	"io"
 	"strings"
 
 	"golang.org/x/crypto/openpgp"
+	"golang.org/x/crypto/openpgp/packet"
 )
 
 type TypeOption string
 type PreferEncryptOption string
 
+var (
+	ErrUnknownType   = errors.New("unkown type")
+	ErrUnknownPrefer = errors.New("unkown prefer")
+	ErrUnknownAttr   = errors.New("unkown attribute")
+	ErrParse         = errors.New("parse error")
+)
+
 const (
-	TypeOpenPGP TypeOption = "OpenPGP"
+	TypeOpenPGP TypeOption = "p"
 
 	PreferEncryptYes PreferEncryptOption = "yes"
 	PreferEncryptNo  PreferEncryptOption = "no"
 )
 
-type InbomeHeader struct {
+type Header struct {
 	To            string
 	Key           *openpgp.Entity
 	PreferEncrypt PreferEncryptOption
@@ -27,9 +37,11 @@ type InbomeHeader struct {
 	Uncritical map[string]string
 }
 
-func (h *InbomeHeader) String() string {
-
+/*
+func (h *Header) String() string {
+	return ""
 }
+*/
 
 const (
 	attrTo            = "to"
@@ -38,33 +50,45 @@ const (
 	attrPreferEncrypt = "prefer-encrypted"
 )
 
-func ParseHeader(header string) (*InbomeHeader, error) {
-	var parsed InbomeHeader
+func ParseHeader(header string) (*Header, error) {
+	var parsed Header
 
 	r := bufio.NewReader(strings.NewReader(header))
 
 	for {
-		part, err := r.ReadString(";")
-		if err != nil {
+		part, err := r.ReadString(';')
+		if err != nil && err != io.EOF {
 			break
 		}
 
+		if len(part) == 0 {
+			break
+		}
+
+		part = strings.TrimRight(part, ";")
 		part = strings.Trim(part, " \t\n\r")
 
-		kv := strings.Split(part, "=")
+		i := strings.Index(part, "=")
+		if i < 0 {
+			return nil, ErrParse
+		}
 
-		switch kv[0] {
+		k := part[:i]
+		v := part[i+1:]
+
+		switch k {
 		case attrTo:
-			parsed.To = kv[1]
+			parsed.To = v
 		case attrKey:
-			key, err = parseKey(kv[1])
+			//key, err := parseKey(v)
+			key, err := parseKey(strings.Replace(v, " ", "", -1))
 			if err != nil {
 				return nil, err
 			}
 
 			parsed.Key = key
 		case attrType:
-			t := TypeOption(kv[1])
+			t := TypeOption(v)
 
 			if t != TypeOpenPGP {
 				return nil, ErrUnknownType
@@ -72,14 +96,14 @@ func ParseHeader(header string) (*InbomeHeader, error) {
 
 			parsed.Type = t
 		case attrPreferEncrypt:
-			pe := PreferEncryptOption(kv[1])
+			pe := PreferEncryptOption(v)
 
 			if pe != PreferEncryptYes && pe != PreferEncryptNo {
-				return nil, ErrUnknownPreferOption
+				return nil, ErrUnknownPrefer
 			}
 			parsed.PreferEncrypt = pe
 		default:
-			if kv[0][0] != "_" {
+			if k[0] != '_' {
 				return nil, ErrUnknownAttr
 			}
 
@@ -87,13 +111,14 @@ func ParseHeader(header string) (*InbomeHeader, error) {
 				parsed.Uncritical = make(map[string]string)
 			}
 
-			parsed.Uncritical[kv[0]] = kv[1]
+			parsed.Uncritical[k] = v
 		}
 	}
+
+	return &parsed, nil
 }
 
-// TODO
-func parseKey(b64Key string) *openpgp.Entity {
-	fmt.Println(b64Key)
-	return nil
+func parseKey(b64Key string) (*openpgp.Entity, error) {
+	r := packet.NewReader(base64.NewDecoder(base64.StdEncoding, strings.NewReader(b64Key)))
+	return openpgp.ReadEntity(r)
 }
