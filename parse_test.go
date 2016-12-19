@@ -117,7 +117,7 @@ func TestParse(t *testing.T) {
 			t.Fatal(emlName, err)
 		}
 
-		t.Logf("%s, %#v\n", emlName, hdr)
+		t.Logf("%s:\n%v\n", emlName, hdr)
 	}
 }
 

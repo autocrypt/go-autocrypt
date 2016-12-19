@@ -24,7 +24,7 @@ const (
 	attrType            = "type"
 	attrPreferEncrypted = "prefer-encrypted"
 
-	inbomeHeader = "Inbome"
+	inbomeHeader = "INBOME"
 )
 
 func ParseHeader(mailHeader mail.Header) (*Header, error) {
@@ -106,7 +106,7 @@ func parseKey(b64Key string) (*openpgp.Entity, error) {
 }
 
 func parseType(opt string) (TypeOption, error) {
-	if opt == "" || opt == TypeStringOpenPGP {
+	if opt == "" || opt == typeMap[TypeOpenPGP] {
 		return TypeOpenPGP, nil
 	}
 
@@ -114,11 +114,11 @@ func parseType(opt string) (TypeOption, error) {
 }
 
 func parsePreferEncrypted(opt string) (bool, error) {
-	if opt == PreferEncryptedStringYes {
+	if opt == preferEncryptedMap[true] {
 		return true, nil
 	}
 
-	if opt == "" || opt == PreferEncryptedStringNo {
+	if opt == "" || opt == preferEncryptedMap[false] {
 		return false, nil
 	}
 
