@@ -1,4 +1,4 @@
-package parse
+package inbome
 
 import (
 	"net/mail"
@@ -15,6 +15,7 @@ var (
 	errTable = map[string]error{
 		"unknown-type.eml":             ErrUnknownType,
 		"rsa2048-unknown-critical.eml": ErrUnknownAttr,
+		"no_inbome.eml":                ErrNoHeader,
 
 		// TODO known breakage
 		"25519-simple.eml": pgperrors.UnsupportedError("public key type: 22"),
@@ -32,7 +33,7 @@ var (
 				h.To == "alice@testsuite.autocrypt.org" &&
 				h.Key != nil &&
 				checkKey(h.Key) &&
-				!h.PreferEncrypt &&
+				!h.PreferEncrypted &&
 				h.Type == TypeOpenPGP &&
 				h.Uncritical == nil
 		},
@@ -41,7 +42,7 @@ var (
 				h.To == "alice@testsuite.autocrypt.org" &&
 				h.Key != nil &&
 				checkKey(h.Key) &&
-				!h.PreferEncrypt &&
+				!h.PreferEncrypted &&
 				h.Type == TypeOpenPGP &&
 				h.Uncritical == nil
 		},
@@ -54,7 +55,7 @@ var (
 				h.To == "alice@testsuite.autocrypt.org" &&
 				h.Key != nil &&
 				checkKey(h.Key) &&
-				!h.PreferEncrypt &&
+				!h.PreferEncrypted &&
 				h.Type == TypeOpenPGP &&
 				h.Uncritical == nil
 		},
@@ -67,7 +68,7 @@ var (
 				h.To == "alice@testsuite.autocrypt.org" &&
 				h.Key != nil &&
 				checkKey(h.Key) &&
-				!h.PreferEncrypt &&
+				!h.PreferEncrypted &&
 				h.Type == TypeOpenPGP &&
 				h.Uncritical == nil
 		},
@@ -76,7 +77,7 @@ var (
 				h.To == "alice@testsuite.autocrypt.org" &&
 				h.Key != nil &&
 				checkKey(h.Key) &&
-				!h.PreferEncrypt &&
+				!h.PreferEncrypted &&
 				h.Type == TypeOpenPGP &&
 				h.Uncritical != nil &&
 				h.Uncritical["_monkey"] == "ignore"
@@ -111,20 +112,12 @@ func TestParse(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		hdrLines, ok := msg.Header["Inbome"]
-		if !ok {
-			if emlName == "no_inbome.eml" {
-				continue
-			}
-			t.Fatal("couldn't find INBOME header line in " + emlFI.Name())
-		}
-
-		hdr, err := ParseHeader(hdrLines[0])
+		hdr, err := ParseHeader(msg.Header)
 		if err != errTable[emlName] {
-			t.Fatal(err)
+			t.Fatal(emlName, err)
 		}
 
-		t.Logf("%s, %#v\n", emlFI.Name(), hdr)
+		t.Logf("%s, %#v\n", emlName, hdr)
 	}
 }
 

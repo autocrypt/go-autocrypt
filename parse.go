@@ -1,62 +1,42 @@
-package parse
+package inbome
 
 import (
 	"encoding/base64"
 	"errors"
+	"net/mail"
 	"strings"
 
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/packet"
 )
 
-type TypeOption int
-
 var (
 	ErrUnknownType   = errors.New("unkown type")
 	ErrUnknownPrefer = errors.New("unkown prefer")
 	ErrUnknownAttr   = errors.New("unkown attribute")
 	ErrParse         = errors.New("parse error")
+	ErrNoHeader      = errors.New("no INBOME header found")
 )
 
 const (
-	preferEncryptStringYes = "yes"
-	preferEncryptStringNo  = "no"
+	attrTo              = "to"
+	attrKey             = "key"
+	attrType            = "type"
+	attrPreferEncrypted = "prefer-encrypted"
+
+	inbomeHeader = "Inbome"
 )
 
-const (
-	TypeOpenPGP TypeOption = iota
-	TypeInvalid
+func ParseHeader(mailHeader mail.Header) (*Header, error) {
+	header := mailHeader.Get(inbomeHeader)
 
-	typeStringOpenPGP = "p"
-)
+	if len(header) == 0 {
+		return nil, ErrNoHeader
+	}
 
-type Header struct {
-	To            string
-	Key           *openpgp.Entity
-	PreferEncrypt bool
-	Type          TypeOption
-
-	Uncritical map[string]string
-}
-
-/*
-func (h *Header) String() string {
-	return ""
-}
-*/
-
-const (
-	attrTo            = "to"
-	attrKey           = "key"
-	attrType          = "type"
-	attrPreferEncrypt = "prefer-encrypted"
-)
-
-func ParseHeader(header string) (*Header, error) {
 	var (
 		parsed Header
 		part   string
-		// foundAttrs = make(map[string]struct{})
 	)
 
 	for len(header) > 0 {
@@ -79,8 +59,6 @@ func ParseHeader(header string) (*Header, error) {
 		k := part[:i]
 		v := part[i+1:]
 
-		//foundAttrs[k] = struct{}{}
-
 		switch k {
 		case attrTo:
 			parsed.To = v
@@ -99,13 +77,13 @@ func ParseHeader(header string) (*Header, error) {
 			}
 
 			parsed.Type = t
-		case attrPreferEncrypt:
+		case attrPreferEncrypted:
 			pe, err := parsePreferEncrypted(v)
 			if err != nil {
 				return nil, err
 			}
 
-			parsed.PreferEncrypt = pe
+			parsed.PreferEncrypted = pe
 		default:
 			if k[0] != '_' {
 				return nil, ErrUnknownAttr
@@ -128,7 +106,7 @@ func parseKey(b64Key string) (*openpgp.Entity, error) {
 }
 
 func parseType(opt string) (TypeOption, error) {
-	if opt == "" || opt == typeStringOpenPGP {
+	if opt == "" || opt == TypeStringOpenPGP {
 		return TypeOpenPGP, nil
 	}
 
@@ -136,11 +114,11 @@ func parseType(opt string) (TypeOption, error) {
 }
 
 func parsePreferEncrypted(opt string) (bool, error) {
-	if opt == preferEncryptStringYes {
+	if opt == PreferEncryptedStringYes {
 		return true, nil
 	}
 
-	if opt == "" || opt == preferEncryptStringNo {
+	if opt == "" || opt == PreferEncryptedStringNo {
 		return false, nil
 	}
 
