@@ -1,4 +1,4 @@
-package inbome
+package autocrypt
 
 import (
 	"net/mail"
@@ -15,14 +15,14 @@ var (
 	errTable = map[string]error{
 		"unknown-type.eml":             ErrUnknownType,
 		"rsa2048-unknown-critical.eml": ErrUnknownAttr,
-		"no_inbome.eml":                ErrNoHeader,
+		"no_autocrypt.eml":                ErrNoHeader,
 
 		// TODO known breakage
 		"25519-simple.eml": pgperrors.UnsupportedError("public key type: 22"),
 	}
 
 	stateTable = map[string]func(*Header) bool{
-		"no_inbome.eml": func(h *Header) bool {
+		"no_autocrypt.eml": func(h *Header) bool {
 			return h == nil
 		},
 		"unknown-type.eml": func(h *Header) bool {

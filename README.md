@@ -1,2 +1,2 @@
-# go-inbome
-Go implementation of the INBOME draft
+# go-autocrypt
+Go implementation of the Autocrypt draft

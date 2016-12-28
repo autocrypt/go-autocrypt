@@ -1,4 +1,4 @@
-package inbome
+package autocrypt
 
 import (
 	"bytes"
@@ -57,7 +57,7 @@ func (h *Header) String() string {
 		str += fmt.Sprintf("%s=%s;", attrKey, wrap(buf.String()))
 	}
 
-	return fmt.Sprintf("%s: %s", inbomeHeader, str)
+	return fmt.Sprintf("%s: %s", autocryptHeader, str)
 }
 
 const nCols = 76

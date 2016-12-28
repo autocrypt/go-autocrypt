@@ -1,4 +1,4 @@
-package inbome
+package autocrypt
 
 import (
 	"encoding/base64"
@@ -15,7 +15,7 @@ var (
 	ErrUnknownPrefer = errors.New("unkown prefer")
 	ErrUnknownAttr   = errors.New("unkown attribute")
 	ErrParse         = errors.New("parse error")
-	ErrNoHeader      = errors.New("no INBOME header found")
+	ErrNoHeader      = errors.New("no AUTOCRYPT header found")
 )
 
 const (
@@ -24,11 +24,11 @@ const (
 	attrType            = "type"
 	attrPreferEncrypted = "prefer-encrypted"
 
-	inbomeHeader = "INBOME"
+	autocryptHeader = "AUTOCRYPT"
 )
 
 func ParseHeader(mailHeader mail.Header) (*Header, error) {
-	header := mailHeader.Get(inbomeHeader)
+	header := mailHeader.Get(autocryptHeader)
 
 	if len(header) == 0 {
 		return nil, ErrNoHeader
